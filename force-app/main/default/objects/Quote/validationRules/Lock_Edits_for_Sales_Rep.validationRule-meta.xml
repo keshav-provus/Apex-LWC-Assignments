@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Lock_Edits_for_Sales_Rep</fullName>
+    <active>true</active>
+    <errorConditionFormula>AND(
+    $Profile.Name = &quot;Sales Rep&quot;,
+    OR(
+        ISPICKVAL(PRIORVALUE(Status), &quot;Submitted&quot;),
+        ISPICKVAL(PRIORVALUE(Status), &quot;Approved&quot;)
+    ),
+    NOT(ISNEW())
+)</errorConditionFormula>
+    <errorMessage>Can&apos;t edit a submitted or approved quote</errorMessage>
+</ValidationRule>
