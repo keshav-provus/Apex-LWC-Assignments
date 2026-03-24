@@ -3,13 +3,21 @@ public class QuoteLineItemTriggerTest {
     
     @isTest
     static void testQuoteLineItemCategoryAutomation() {
-        // 1. Create the Category Record (Replace 'Category__c' with your Object API Name)
-        // If your custom object is named 'Category__c', use that. 
-        // If it's 'Product_Category__c', change it below.
-        Category__c testCat = new Category__c(Name = 'Software');
+        // 1. Create the Category Record
+        Category__c testCat = new Category__c(Name = 'Software', Default_Discount__c = 10.0);
         insert testCat;
 
-        // 2. Setup Product - Link it to the Category ID, NOT the string "Software"
+        // Create Quantity Tier
+        Quantitiy_Tier__c testTier = new Quantitiy_Tier__c(
+            Name = 'Tier 1',
+            Category__c = testCat.Id,
+            Minimum_Quantity__c = 1,
+            Maximum_Quantity__c = 10,
+            Discount__c = 5.0
+        );
+        insert testTier;
+
+        // 2. Setup Product - Link it to the Category ID
         Product2 testProduct = new Product2(
             Name = 'Cloud Service Gold', 
             Category__c = testCat.Id, 
@@ -47,25 +55,37 @@ public class QuoteLineItemTriggerTest {
         QuoteLineItem qli = new QuoteLineItem(
             QuoteId = q.Id, 
             PricebookEntryId = pbe.Id, 
-            Quantity = 1, 
-            UnitPrice = 500
+            Quantity = 5, 
+            UnitPrice = 500,
+            Offered_Discount__c = 2.0
         );
         
         Test.startTest();
         insert qli;
         
-        // 6. TEST UPDATE (Change Category)
-        Category__c newCat = new Category__c(Name = 'Hardware');
+        // Verify Insert
+        QuoteLineItem insertedQli = [SELECT Category__c, Category_Based_Discount__c, Quantitiy_Tier_Discount__c, Discount FROM QuoteLineItem WHERE Id = :qli.Id];
+        System.assertEquals(testCat.Id, insertedQli.Category__c, 'QLI Category ID should match the Category record ID.');
+        System.assertEquals(10.0, insertedQli.Category_Based_Discount__c, 'Category discount should be 10.0');
+        System.assertEquals(5.0, insertedQli.Quantitiy_Tier_Discount__c, 'Quantity tier discount should be 5.0');
+        System.assertEquals(17.0, insertedQli.Discount, 'Total discount should be 17.0');
+
+        // 6. TEST UPDATE (Change Category and Quantity)
+        Category__c newCat = new Category__c(Name = 'Hardware', Default_Discount__c = 15.0);
         insert newCat;
         
         testProduct.Category__c = newCat.Id;
         update testProduct;
         
+        qli.Quantity = 15; // Does not match Tier 1 
         update qli; 
         Test.stopTest();
 
-        // Final Verification
-        QuoteLineItem result = [SELECT Category__c FROM QuoteLineItem WHERE Id = :qli.Id];
-        System.assertEquals(newCat.Id, result.Category__c, 'QLI Category ID should match the new Category record ID.');
+        // Verify Update
+        QuoteLineItem updatedQli = [SELECT Category__c, Category_Based_Discount__c, Quantitiy_Tier_Discount__c, Discount FROM QuoteLineItem WHERE Id = :qli.Id];
+        System.assertEquals(newCat.Id, updatedQli.Category__c, 'QLI Category ID should match the new Category record ID.');
+        System.assertEquals(15.0, updatedQli.Category_Based_Discount__c, 'Category discount should be updated to 15.0');
+        System.assertEquals(0.0, updatedQli.Quantitiy_Tier_Discount__c, 'Quantity tier discount should be 0.0 with no matching tier');
+        System.assertEquals(17.0, updatedQli.Discount, 'Total discount should be 17.0');
     }
 }
