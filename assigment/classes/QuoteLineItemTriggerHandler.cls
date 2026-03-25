@@ -1,14 +1,5 @@
 public class QuoteLineItemTriggerHandler {
-
-    public static void beforeInsert(List<QuoteLineItem> newItems) {
-        processQuoteLineItems(newItems);
-    }
-
-    public static void beforeUpdate(Map<Id, QuoteLineItem> oldMap, List<QuoteLineItem> newItems) {
-        processQuoteLineItems(newItems);
-    }
-    
-    private static void processQuoteLineItems(List<QuoteLineItem> newItems) {
+    public static void processQuoteLineItems(List<QuoteLineItem> newItems) {
         Set<Id> categoryIds = new Set<Id>();
         for (QuoteLineItem qli : newItems) {
             if (qli.Category__c != null) {
@@ -20,17 +11,9 @@ public class QuoteLineItemTriggerHandler {
             return;
         }
         
-        Map<Id, Category__c> categoryMap = new Map<Id, Category__c>([
-            SELECT Id, Default_Discount__c 
-            FROM Category__c 
-            WHERE Id IN :categoryIds
-        ]);
+        Map<Id, Category__c> categoryMap = new Map<Id, Category__c>(CategoryDAO.getByIds(categoryIds));
         
-        List<Quantitiy_Tier__c> quantityTiers = [
-            SELECT Id, Category__c, Minimum_Quantity__c, Maximum_Quantity__c, Discount__c
-            FROM Quantitiy_Tier__c
-            WHERE Category__c IN :categoryIds
-        ];
+        List<Quantitiy_Tier__c> quantityTiers = QuantityTierDAO.getByCategories(categoryIds);
         
         for (QuoteLineItem qli : newItems) {
             if (qli.Category__c == null) {

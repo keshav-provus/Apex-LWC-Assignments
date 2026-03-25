@@ -1,5 +1,5 @@
 @isTest
-public class AutoUpdateCategoryQLITriggerTest {
+public class QLICategoryHandlerTest {
     @isTest
     static void testCategoryAssignment() {
         Category__c testCat = new Category__c(Name = 'Software', Default_Discount__c = 10.0);

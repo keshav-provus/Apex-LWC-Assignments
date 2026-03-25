@@ -13,12 +13,7 @@ public class QuoteTriggerHandler {
             return;
         }
         
-        List<OpportunityStage> activeStages = [
-            SELECT MasterLabel, SortOrder 
-            FROM OpportunityStage 
-            WHERE IsActive = true 
-            ORDER BY SortOrder ASC
-        ];
+        List<OpportunityStage> activeStages = OpportunityStageDAO.getActiveStagesOrdered();
         
         Map<String, String> nextStageMap = new Map<String, String>();
         for (Integer i = 0; i < activeStages.size() - 1; i++) {
@@ -26,7 +21,7 @@ public class QuoteTriggerHandler {
         }
         
         List<Opportunity> oppsToUpdate = new List<Opportunity>();
-        List<Opportunity> opps = [SELECT Id, StageName FROM Opportunity WHERE Id IN :oppIdsToUpdate];
+        List<Opportunity> opps = OpportunityDAO.getByIds(oppIdsToUpdate);
         
         for (Opportunity opp : opps) {
             String currentStage = opp.StageName;

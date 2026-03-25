@@ -1,14 +1,5 @@
-public class AutoUpdateCategoryQLITriggerHandler {
-
-    public static void beforeInsert(List<QuoteLineItem> newItems) {
-        processCategoryUpdate(newItems);
-    }
-
-    public static void beforeUpdate(Map<Id, QuoteLineItem> oldMap, List<QuoteLineItem> newItems) {
-        processCategoryUpdate(newItems);
-    }
-    
-    private static void processCategoryUpdate(List<QuoteLineItem> newItems) {
+public class QLICategoryHandler {
+    public static void processCategoryUpdate(List<QuoteLineItem> newItems) {
         Set<Id> productIds = new Set<Id>();
         Set<Id> pbeIds = new Set<Id>();
         
@@ -22,7 +13,7 @@ public class AutoUpdateCategoryQLITriggerHandler {
         
         Map<Id, Id> pbeToProductMap = new Map<Id, Id>();
         if (!pbeIds.isEmpty()) {
-            for (PricebookEntry pbe : [SELECT Id, Product2Id FROM PricebookEntry WHERE Id IN :pbeIds]) {
+            for (PricebookEntry pbe : PricebookEntryDAO.getByIds(pbeIds)) {
                 pbeToProductMap.put(pbe.Id, pbe.Product2Id);
                 productIds.add(pbe.Product2Id);
             }
@@ -30,7 +21,7 @@ public class AutoUpdateCategoryQLITriggerHandler {
         
         Map<Id, Product2> productMap = new Map<Id, Product2>();
         if (!productIds.isEmpty()) {
-            productMap = new Map<Id, Product2>([SELECT Id, Category__c FROM Product2 WHERE Id IN :productIds]);
+            productMap = new Map<Id, Product2>(Product2DAO.getByIds(productIds));
         }
         
         for (QuoteLineItem qli : newItems) {
