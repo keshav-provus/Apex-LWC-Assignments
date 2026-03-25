@@ -51,7 +51,8 @@ public class QuoteLineItemTriggerTest {
             PricebookEntryId = pbe.Id, 
             Quantity = 5, 
             UnitPrice = 500,
-            Offered_Discount__c = 2.0
+            Offered_Discount__c = 2.0,
+            Category__c = testCat.Id
         );
         
         Test.startTest();

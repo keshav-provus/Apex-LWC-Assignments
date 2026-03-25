@@ -9,23 +9,8 @@ public class QuoteLineItemTriggerHandler {
     }
     
     private static void processQuoteLineItems(List<QuoteLineItem> newItems) {
-        Set<Id> productIds = new Set<Id>();
-        for (QuoteLineItem qli : newItems) {
-            if (qli.Product2Id != null) {
-                productIds.add(qli.Product2Id);
-            }
-        }
-        
-        Map<Id, Product2> productMap = new Map<Id, Product2>();
-        if (!productIds.isEmpty()) {
-            productMap = new Map<Id, Product2>([SELECT Id, Category__c FROM Product2 WHERE Id IN :productIds]);
-        }
-        
         Set<Id> categoryIds = new Set<Id>();
         for (QuoteLineItem qli : newItems) {
-            if (qli.Product2Id != null && productMap.containsKey(qli.Product2Id)) {
-                qli.Category__c = productMap.get(qli.Product2Id).Category__c;
-            }
             if (qli.Category__c != null) {
                 categoryIds.add(qli.Category__c);
             }
